@@ -4,6 +4,7 @@ import cv2
 import depthai as dai
 import numpy as np
 
+calculate_only = False
 imgs_path = "./dataset/imgs"
 masks_path = "./dataset/masks"
 blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/op.blob")
@@ -52,6 +53,9 @@ with dai.Device() as device:
     device.startPipeline(pipeline)
     q_in = device.getInputQueue(name="inFrame")  # type: ignore
     q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)  # type: ignore
+
+    iou_avg = 0
+    count = 0
     for i in range(1, 1326):
         pic = cv2.imread(imgs_path + "/({}).jpg".format(i))
         pic = cv2.cvtColor(pic, cv2.COLOR_BGR2RGB)
@@ -73,20 +77,24 @@ with dai.Device() as device:
         layer1 = msgs.getFirstLayerFp16()
         frame = np.asarray(layer1).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0])
         iou = cal_iou(frame, msk[:, :, 0])
+        iou_avg += iou
+        count += 1
 
-        frame = (frame > 0.5).astype(np.uint8) * 255
-        msk = msk.astype(np.uint8) * 255
-        frame = np.concatenate((pic, np.stack((frame,) * 3, axis=2), msk), axis=1)
+        if not calculate_only:
+            frame = (frame > 0.5).astype(np.uint8) * 255
+            msk = msk.astype(np.uint8) * 255
+            frame = np.concatenate((pic, np.stack((frame,) * 3, axis=2), msk), axis=1)
+            cv2.putText(
+                frame,
+                "IoU: {:.2f}".format(iou),
+                (2, frame.shape[0] - 4),
+                cv2.FONT_HERSHEY_TRIPLEX,
+                0.4,
+                color=(255, 255, 255),
+            )
+            cv2.imshow("Frame", frame)
 
-        cv2.putText(
-            frame,
-            "IoU: {:.2f}".format(iou),
-            (2, frame.shape[0] - 4),
-            cv2.FONT_HERSHEY_TRIPLEX,
-            0.4,
-            color=(255, 255, 255),
-        )
-        cv2.imshow("Frame", frame)
+            if cv2.waitKey(0) == ord("q"):
+                break
 
-        if cv2.waitKey(0) == ord("q"):
-            break
+    print("average IoU: {:.2f}".format(iou_avg / count))
