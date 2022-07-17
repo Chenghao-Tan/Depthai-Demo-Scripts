@@ -8,6 +8,9 @@ calculate_only = False
 imgs_path = "./dataset/imgs"
 masks_path = "./dataset/masks"
 blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/op.blob")
+threshold = 0.5
+assert threshold >= 0 and threshold <= 1
+
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["0"].dims[:2]
@@ -42,10 +45,12 @@ xout_nn.setStreamName("nn")
 detection_nn.out.link(xout_nn.input)
 
 
-def cal_iou(input, target):
-    inter = np.dot(input.flatten(), target.flatten())
-    total = np.sum(input) + np.sum(target) - inter
-    return inter / total
+def iou_rec_pre(input, target, e=1e-6):
+    inter = np.dot(input.flatten(), target.flatten()) + e
+    i_sum = np.sum(input) + e
+    t_sum = np.sum(target) + e
+    total = i_sum + t_sum - inter - e
+    return inter / total, inter / t_sum, inter / i_sum
 
 
 # Pipeline is defined, now we can connect to the device
@@ -55,6 +60,8 @@ with dai.Device() as device:
     q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)  # type: ignore
 
     iou_avg = 0
+    rec_avg = 0
+    pre_avg = 0
     count = 0
     for i in range(1, 1326):
         pic = cv2.imread(imgs_path + "/({}).jpg".format(i))
@@ -76,12 +83,14 @@ with dai.Device() as device:
         msgs = q_nn.get()
         layer1 = msgs.getFirstLayerFp16()
         frame = np.asarray(layer1).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0])
-        iou = cal_iou(frame, msk[:, :, 0])
+        iou, rec, pre = iou_rec_pre(frame, msk[:, :, 0])
         iou_avg += iou
+        rec_avg += rec
+        pre_avg += pre
         count += 1
 
         if not calculate_only:
-            frame = (frame > 0.5).astype(np.uint8) * 255
+            frame = (frame > threshold).astype(np.uint8) * 255
             msk = msk.astype(np.uint8) * 255
             frame = np.concatenate((pic, np.stack((frame,) * 3, axis=2), msk), axis=1)
             cv2.putText(
@@ -98,3 +107,5 @@ with dai.Device() as device:
                 break
 
     print("average IoU: {:.2f}".format(iou_avg / count))
+    print("average recall: {:.2f}".format(rec_avg / count))
+    print("average precision: {:.2f}".format(pre_avg / count))
