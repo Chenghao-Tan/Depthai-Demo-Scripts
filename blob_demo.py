@@ -1,7 +1,6 @@
 import time
 from datetime import timedelta
 
-import blobconverter
 import cv2
 import depthai as dai
 import numpy as np
@@ -10,7 +9,7 @@ import numpy as np
 jet_custom = cv2.applyColorMap(np.arange(256, dtype=np.uint8), cv2.COLORMAP_JET)
 jet_custom[0] = [0, 0, 0]
 
-blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/BEST.blob")
+blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/op.blob")
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["0"].dims[:2]
@@ -20,17 +19,14 @@ TARGET_SHAPE = (400, 400)
 def decode_deeplabv3p(output_tensor):
     class_colors = [[0, 0, 0], [0, 255, 0]]
     class_colors = np.asarray(class_colors, dtype=np.uint8)
-
-    output = output_tensor.reshape(*INPUT_SHAPE)
-    output_colors = np.take(class_colors, output, axis=0)
+    output_colors = np.take(class_colors, output_tensor, axis=0)
     return output_colors
 
 
 def get_multiplier(output_tensor):
     class_binary = [[0], [1]]
     class_binary = np.asarray(class_binary, dtype=np.uint8)
-    output = output_tensor.reshape(*INPUT_SHAPE)
-    output_colors = np.take(class_binary, output, axis=0)
+    output_colors = np.take(class_binary, output_tensor, axis=0)
     return output_colors
 
 
@@ -102,11 +98,10 @@ cam = pipeline.create(dai.node.ColorCamera)
 cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 # Color cam: 1920x1080
 # Mono cam: 640x400
-cam.setIspScale((1, 4), (1, 4))  # To match 400P mono cameras
+cam.setIspScale((1, 3), (1, 3))
 cam.setBoardSocket(dai.CameraBoardSocket.RGB)
 
-# For deeplabv3
-cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 cam.setPreviewSize(*INPUT_SHAPE)
 cam.setInterleaved(False)
 
@@ -190,7 +185,7 @@ with dai.Device() as device:
             # get layer1 data
             layer1 = msgs["nn"].getFirstLayerFp16()
             # reshape to numpy array
-            lay1 = np.asarray(layer1).reshape(*INPUT_SHAPE) > 0.5
+            lay1 = np.asarray(layer1).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0]) > 0.5
             output_colors = decode_deeplabv3p(lay1.astype(np.int32))
 
             # To match depth frames
