@@ -10,7 +10,7 @@ import numpy as np
 jet_custom = cv2.applyColorMap(np.arange(256, dtype=np.uint8), cv2.COLORMAP_JET)
 jet_custom[0] = [0, 0, 0]
 
-blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/BEST.blob")
+blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/BEST_360.blob")
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["0"].dims[:2]
@@ -102,7 +102,7 @@ cam = pipeline.create(dai.node.ColorCamera)
 cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 # Color cam: 1920x1080
 # Mono cam: 640x400
-cam.setIspScale((1, 4), (1, 4))  # To match 400P mono cameras
+cam.setIspScale((1, 3), (1, 3))  # To match 400P mono cameras
 cam.setBoardSocket(dai.CameraBoardSocket.RGB)
 
 # For deeplabv3
@@ -183,7 +183,7 @@ with dai.Device() as device:
         # get layer1 data
         layer1 = msgs.getFirstLayerFp16()
         # reshape to numpy array
-        frame = np.asarray(layer1).reshape(270, 480) > 0.5
+        frame = np.asarray(layer1).reshape(360, 640) > 0.5
         frame = frame.astype(np.uint8) * 255
 
         cv2.putText(
