@@ -4,7 +4,7 @@ import cv2
 import depthai as dai
 import numpy as np
 
-blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/op.blob")
+blob = dai.OpenVINO.Blob("./models/DDRNet/640_360.blob")  # TODO MODEL PATH
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["0"].dims[:2]
@@ -29,7 +29,7 @@ pipeline = dai.Pipeline()
 
 cam = pipeline.create(dai.node.ColorCamera)
 cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-cam.setIspScale((1, 3), (1, 3))
+cam.setIspScale((1, 3), (1, 3))  # TODO RGB->640x360
 cam.setBoardSocket(dai.CameraBoardSocket.RGB)
 cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 cam.setPreviewSize(*INPUT_SHAPE)
@@ -50,7 +50,7 @@ detection_nn.out.link(xout_nn.input)
 # Pipeline is defined, now we can connect to the device
 with dai.Device() as device:
     device.startPipeline(pipeline)
-    q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+    q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)  # type: ignore
     fps = FPSHandler()
     while True:
         msgs = q_nn.get()

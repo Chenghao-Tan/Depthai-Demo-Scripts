@@ -9,7 +9,7 @@ import numpy as np
 jet_custom = cv2.applyColorMap(np.arange(256, dtype=np.uint8), cv2.COLORMAP_JET)
 jet_custom[0] = [0, 0, 0]
 
-blob = dai.OpenVINO.Blob("E:/Desktop/GSoC/boat/models/DDRNet/op.blob")
+blob = dai.OpenVINO.Blob("./models/DDRNet/640_360.blob")  # TODO MODEL PATH
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["0"].dims[:2]
@@ -98,7 +98,7 @@ cam = pipeline.create(dai.node.ColorCamera)
 cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 # Color cam: 1920x1080
 # Mono cam: 640x400
-cam.setIspScale((1, 3), (1, 3))
+cam.setIspScale((1, 3), (1, 3))  # TODO RGB->640x360
 cam.setBoardSocket(dai.CameraBoardSocket.RGB)
 
 cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
@@ -157,9 +157,9 @@ with dai.Device() as device:
         )
     device.startPipeline(pipeline)
     # Output queues will be used to get the outputs from the device
-    q_color = device.getOutputQueue(name="cam", maxSize=4, blocking=False)
-    q_disp = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)
-    q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+    q_color = device.getOutputQueue(name="cam", maxSize=4, blocking=False)  # type: ignore
+    q_disp = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)  # type: ignore
+    q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)  # type: ignore
 
     fps = FPSHandler()
     sync = HostSync()
@@ -216,7 +216,7 @@ with dai.Device() as device:
 
             multiplier = get_multiplier(lay1)
             multiplier = cv2.resize(multiplier, TARGET_SHAPE)
-            depth_overlay = disp_frame * multiplier
+            depth_overlay = disp_frame * multiplier  # type: ignore
             frames["cutout"] = cv2.applyColorMap(depth_overlay, jet_custom)
             # You can add custom code here, for example depth averaging
 
