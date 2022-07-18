@@ -105,7 +105,7 @@ cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 cam.setPreviewSize(*INPUT_SHAPE)
 cam.setInterleaved(False)
 
-# NN output linked to XLinkOut
+# Cam output linked to XLinkOut
 isp_xout = pipeline.create(dai.node.XLinkOut)
 isp_xout.setStreamName("cam")
 cam.isp.link(isp_xout.input)
@@ -189,12 +189,12 @@ with dai.Device() as device:
             output_colors = decode_deeplabv3p(lay1.astype(np.int32))
 
             # To match depth frames
+            output_colors = crop_to_square(output_colors)
             output_colors = cv2.resize(output_colors, TARGET_SHAPE)
 
             frame = msgs["color"].getCvFrame()
             frame = crop_to_square(frame)
             frame = cv2.resize(frame, TARGET_SHAPE)
-            frames["frame"] = frame
             frame = cv2.addWeighted(frame, 1, output_colors, 0.5, 0)
             cv2.putText(
                 frame,
