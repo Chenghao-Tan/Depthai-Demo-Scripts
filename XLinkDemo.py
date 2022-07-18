@@ -101,7 +101,7 @@ with dai.Device() as device:
                 0.4,
                 color=(255, 255, 255),
             )
-            cv2.imshow("Frame", frame)
+            cv2.imshow("Image/Out/Mask", frame)
 
             if cv2.waitKey(0) == ord("q"):
                 break

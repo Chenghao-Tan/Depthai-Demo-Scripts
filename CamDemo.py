@@ -46,14 +46,19 @@ cam.preview.link(detection_nn.input)
 xout_nn = pipeline.create(dai.node.XLinkOut)
 xout_nn.setStreamName("nn")
 detection_nn.out.link(xout_nn.input)
+xout_img = pipeline.create(dai.node.XLinkOut)
+xout_img.setStreamName("img")
+detection_nn.passthrough.link(xout_img.input)
 
 # Pipeline is defined, now we can connect to the device
 with dai.Device() as device:
     device.startPipeline(pipeline)
     q_nn = device.getOutputQueue(name="nn", maxSize=4, blocking=False)  # type: ignore
+    q_img = device.getOutputQueue(name="img", maxSize=4, blocking=False)  # type: ignore
     fps = FPSHandler()
     while True:
         msgs = q_nn.get()
+        img = q_img.get().getCvFrame()
         fps.next_iter()
 
         # get layer1 data
@@ -61,6 +66,8 @@ with dai.Device() as device:
         # reshape to numpy array
         frame = np.asarray(layer1).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0]) > 0.5
         frame = frame.astype(np.uint8) * 255
+
+        frame = np.concatenate((img, np.stack((frame,) * 3, axis=2)), axis=0)
 
         cv2.putText(
             frame,

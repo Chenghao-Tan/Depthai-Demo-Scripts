@@ -40,8 +40,8 @@ stereo.disparity.link(xoutDepth.input)
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
     # Output queue will be used to get the depth frames from the outputs defined above
-    depthQueue = device.getOutputQueue(name="depth")
-    dispQ = device.getOutputQueue(name="disp")
+    depthQueue = device.getOutputQueue(name="depth")  # type: ignore
+    dispQ = device.getOutputQueue(name="disp")  # type: ignore
 
     text = TextHelper()
     hostSpatials = HostSpatialsCalc(device)

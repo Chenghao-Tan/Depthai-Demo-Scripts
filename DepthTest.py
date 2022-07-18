@@ -56,7 +56,7 @@ camRgb.setFps(fps)
 camRgb.setIspScale(2, 3)  # RGB 1080P->720P
 camRgb.initialControl.setManualFocus(130)
 
-stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
+stereo.setDepthAlign(dai.CameraBoardSocket.RGB)  # DISPLAY WILL ALWAYS BE 720P
 
 # Linking
 left.out.link(stereo.left)
