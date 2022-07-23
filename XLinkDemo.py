@@ -92,6 +92,7 @@ with dai.Device() as device:
         if not calculate_only:
             frame = (frame > threshold).astype(np.uint8) * 255
             msk = msk.astype(np.uint8) * 255
+            pic = cv2.cvtColor(pic, cv2.COLOR_RGB2BGR)
             frame = np.concatenate((pic, np.stack((frame,) * 3, axis=2), msk), axis=1)
             cv2.putText(
                 frame,
