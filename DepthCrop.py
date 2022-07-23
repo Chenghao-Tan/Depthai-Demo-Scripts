@@ -220,7 +220,7 @@ with dai.Device() as device:
             frames["cutout"] = cv2.applyColorMap(depth_overlay, jet_custom)
             # You can add custom code here, for example depth averaging
 
-        if len(frames) == 4:
+        if len(frames) == 3:
             show = np.concatenate(
                 (frames["colored_frame"], frames["cutout"], frames["depth"]), axis=1
             )
