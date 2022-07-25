@@ -1,17 +1,10 @@
-#include <cstdio>
-#include <cstdint>
-#include <cstddef>
-#include <cstring>
-#include <chrono>
-
-#define OBSTACLE_SEND_RATE_HZ 15
-
 extern "C"
 {
     void app_main();
 }
 
 #include "main.h"
+#include "config.h"
 
 void obstacle_avoidance::send_obs_dist_3d(uint32_t time, float x, float y, float z)
 {
@@ -23,47 +16,58 @@ void obstacle_avoidance::send_obs_dist_3d(uint32_t time, float x, float y, float
     serial_comm.send_message(len, buf);
 }
 
-void obstacle_avoidance::main_loop()
+void obstacle_avoidance::loop()
 {
-    uint8_t req_success = 0;
-
-    dai::SpiApi mySpiApi;
-    mySpiApi.set_send_spi_impl(&esp32_send_spi);
-    mySpiApi.set_recv_spi_impl(&esp32_recv_spi);
+    dai::SpiApi SPI;
+    SPI.set_send_spi_impl(&esp32_send_spi);
+    SPI.set_recv_spi_impl(&esp32_recv_spi);
 
     while (true)
     {
-
-        // send heartbeat to ArduPilot at a constant rate
+        // Send heartbeat to ArduPilot at a constant rate
         serial_comm.send_heartbeat();
 
-        dai::Message spatialDataMsg;
+        dai::Message NNDataMsg;
         bool receivedAnyMessage = false;
 
-        if (mySpiApi.req_message(&spatialDataMsg, "spatialData"))
+        if (SPI.req_message(&NNDataMsg, "NN"))
         {
-            // example of parsing the raw metadata
             const uint32_t msg_ms = serial_comm.get_millis_ms();
-            dai::RawSpatialLocations rawSpatialLocations;
-            mySpiApi.parse_metadata(&spatialDataMsg.raw_meta, rawSpatialLocations);
+            dai::RawNNData rawMeta;
+            SPI.parse_metadata(&NNDataMsg.raw_meta, rawMeta);
 
-            if ((last_obstacle_msg_ms - msg_ms) > 1000 / OBSTACLE_SEND_RATE_HZ)
+            if ((msg_ms - last_obstacle_msg_ms) > (1000 / OBSTACLE_SEND_RATE_HZ))
             {
                 last_obstacle_msg_ms = msg_ms;
-                int i = 0;
-                for (const auto &spatialData : rawSpatialLocations.spatialLocations)
+
+                /*
+                for (const auto &tensor : rawMeta.tensors)
                 {
-                    auto x = spatialData.spatialCoordinates.x;
-                    auto y = spatialData.spatialCoordinates.y;
-                    auto z = spatialData.spatialCoordinates.z;
-                    send_obs_dist_3d(msg_ms, x, y, z);
-                    auto euclideanDistance = std::sqrt(x * x + y * y + z * z);
-                    printf("Euclidean distance %d mm, X: %d mm, Y: %d mm, Z: %d mm \n", (int)euclideanDistance, (int)x, (int)y, (int)z);
+                }
+                */
+
+                uint16_t raw_data[GRID_NUM * 4]; // label, x, y, z
+                grid grids[GRID_NUM];
+                // if (sizeof(raw_data) <= NNDataMsg.raw_data.size)
+                memcpy(raw_data, NNDataMsg.raw_data.data, sizeof(raw_data));
+
+                for (int i = 0; i < GRID_NUM * 4; i++)
+                {
+                    _float16_shape_type temp;
+                    temp.bits = raw_data[i];
+                    *((float *)grids + i) = float16_to_float32(temp);
+                }
+
+                for (int i = 0; i < GRID_NUM; i++)
+                {
+                    if (grids[i].label != 0) // Not background
+                        send_obs_dist_3d(msg_ms, grids[i].x, grids[i].y, grids[i].z);
                 }
             }
+
             // free up resources once you're done with the message.
-            mySpiApi.free_message(&spatialDataMsg);
-            mySpiApi.spi_pop_message("spatialData");
+            SPI.free_message(&NNDataMsg);
+            SPI.spi_pop_message("NN");
             receivedAnyMessage = true;
         }
 
@@ -82,10 +86,8 @@ void app_main()
     init_esp32_spi();
 
     obstacle_avoidance avoidance_grid;
+    avoidance_grid.loop();
 
-    // run the main loop
-    avoidance_grid.main_loop();
-
-    // Never reached.
+    // Never reached
     deinit_esp32_spi();
 }
