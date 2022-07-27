@@ -4,8 +4,12 @@ from pathlib import Path
 import depthai as dai
 import numpy as np
 
+# For intrinsics
+RESOLUTION_H = 360  # TODO
+RESOLUTION_W = 640  # TODO
+
 """# Bootloader Info
-(res, info) = dai.DeviceBootloader.getFirstAvailableDevice()
+(res, info) = dai.DeviceBootloader.getFirstAvailableDevice()  # type: ignore
 if res == True:
     print(f"Found device with name: {info.name}")
     bl = dai.DeviceBootloader(info)
@@ -49,63 +53,61 @@ with dai.Device(pipeline) as device:
     print("Connected cameras:", device.getConnectedCameras())
 
     # Calibration Info
-    calibFile = str(
+    calibData = device.readCalibration()
+
+    """calibFile = str(
         (Path(__file__).parent / Path(f"calib_{device.getMxId()}.json"))
         .resolve()
         .absolute()
     )
     if len(sys.argv) > 1:
         calibFile = sys.argv[1]
+    calibData.eepromToJsonFile(calibFile)"""
 
-    calibData = device.readCalibration()
-    calibData.eepromToJsonFile(calibFile)
-
-    M_rgb, width, height = calibData.getDefaultIntrinsics(dai.CameraBoardSocket.RGB)
-    print("RGB Camera Default intrinsics...")
+    M_rgb = np.array(
+        calibData.getCameraIntrinsics(
+            dai.CameraBoardSocket.RGB, RESOLUTION_W, RESOLUTION_H
+        )
+    )
+    print("RGB Camera resized intrinsics...")
     print(M_rgb)
-    print(width)
-    print(height)
 
-    if (
+    D_rgb = np.array(calibData.getDistortionCoefficients(dai.CameraBoardSocket.RGB))
+    print("RGB Distortion Coefficients...")
+    [
+        print(name + ": " + value)
+        for (name, value) in zip(
+            [
+                "k1",
+                "k2",
+                "p1",
+                "p2",
+                "k3",
+                "k4",
+                "k5",
+                "k6",
+                "s1",
+                "s2",
+                "s3",
+                "s4",
+                "τx",
+                "τy",
+            ],
+            [str(data) for data in D_rgb],
+        )
+    ]
+
+    print(f"RGB HFOV {calibData.getFov(dai.CameraBoardSocket.RGB)}")
+    print(f"RGB len's position {calibData.getLensPosition(dai.CameraBoardSocket.RGB)}")
+
+    if not (
         "OAK-1" in calibData.getEepromData().boardName
         or "BW1093OAK" in calibData.getEepromData().boardName
     ):
-        M_rgb = np.array(
-            calibData.getCameraIntrinsics(dai.CameraBoardSocket.RGB, 640, 360)
-        )
-        print("RGB Camera resized intrinsics...")
-        print(M_rgb)
-
-        D_rgb = np.array(calibData.getDistortionCoefficients(dai.CameraBoardSocket.RGB))
-        print("RGB Distortion Coefficients...")
-        [
-            print(name + ": " + value)
-            for (name, value) in zip(
-                [
-                    "k1",
-                    "k2",
-                    "p1",
-                    "p2",
-                    "k3",
-                    "k4",
-                    "k5",
-                    "k6",
-                    "s1",
-                    "s2",
-                    "s3",
-                    "s4",
-                    "τx",
-                    "τy",
-                ],
-                [str(data) for data in D_rgb],
-            )
-        ]
-
-        print(f"RGB FOV {calibData.getFov(dai.CameraBoardSocket.RGB)}")
-
-    else:
         M_left = np.array(
-            calibData.getCameraIntrinsics(dai.CameraBoardSocket.LEFT, 640, 360)
+            calibData.getCameraIntrinsics(
+                dai.CameraBoardSocket.LEFT, RESOLUTION_W, RESOLUTION_H
+            )
         )
         print("LEFT Camera resized intrinsics...")
         print(M_left)
@@ -137,8 +139,12 @@ with dai.Device(pipeline) as device:
             )
         ]
 
+        print(f"LEFT Mono HFOV {calibData.getFov(dai.CameraBoardSocket.LEFT)}")
+
         M_right = np.array(
-            calibData.getCameraIntrinsics(dai.CameraBoardSocket.RIGHT, 640, 360)
+            calibData.getCameraIntrinsics(
+                dai.CameraBoardSocket.RIGHT, RESOLUTION_W, RESOLUTION_H
+            )
         )
         print("RIGHT Camera resized intrinsics...")
         print(M_right)
@@ -170,33 +176,7 @@ with dai.Device(pipeline) as device:
             )
         ]
 
-        print(
-            f"RGB FOV {calibData.getFov(dai.CameraBoardSocket.RGB)}, Mono FOV {calibData.getFov(dai.CameraBoardSocket.LEFT)}"
-        )
-
-        R1 = np.array(calibData.getStereoLeftRectificationRotation())
-        R2 = np.array(calibData.getStereoRightRectificationRotation())
-        M_right = np.array(
-            calibData.getCameraIntrinsics(calibData.getStereoRightCameraId(), 640, 360)
-        )
-
-        H_left = np.matmul(np.matmul(M_right, R1), np.linalg.inv(M_left))
-        print("LEFT Camera stereo rectification matrix...")
-        print(H_left)
-
-        H_right = np.matmul(np.matmul(M_right, R1), np.linalg.inv(M_right))
-        print("RIGHT Camera stereo rectification matrix...")
-        print(H_right)
-
-        lr_extrinsics = np.array(
-            calibData.getCameraExtrinsics(
-                dai.CameraBoardSocket.LEFT, dai.CameraBoardSocket.RIGHT
-            )
-        )
-        print(
-            "Transformation matrix of where left Camera is W.R.T right Camera's optical center"
-        )
-        print(lr_extrinsics)
+        print(f"RIGHT Mono HFOV {calibData.getFov(dai.CameraBoardSocket.RIGHT)}")
 
         l_rgb_extrinsics = np.array(
             calibData.getCameraExtrinsics(
@@ -207,3 +187,13 @@ with dai.Device(pipeline) as device:
             "Transformation matrix of where left Camera is W.R.T RGB Camera's optical center"
         )
         print(l_rgb_extrinsics)
+
+        r_rgb_extrinsics = np.array(
+            calibData.getCameraExtrinsics(
+                dai.CameraBoardSocket.RIGHT, dai.CameraBoardSocket.RGB
+            )
+        )
+        print(
+            "Transformation matrix of where right Camera is W.R.T RGB Camera's optical center"
+        )
+        print(r_rgb_extrinsics)
