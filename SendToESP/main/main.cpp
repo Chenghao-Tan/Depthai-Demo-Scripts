@@ -62,7 +62,7 @@ void obstacle_avoidance::loop()
                 {
                     if (grids[i].label != 0) // Not background
                         send_obs_dist_3d(msg_ms, grids[i].x, grids[i].y, grids[i].z);
-                    printf("label:%d, x:%.1fm, y:%.1fm, z:%.1fm\n", int(grids[i].label), grids[i].x, grids[i].y, grids[i].z); // For debug
+                    // printf("label:%d, x:%.1fm, y:%.1fm, z:%.1fm\n", int(grids[i].label), grids[i].x, grids[i].y, grids[i].z); // For debug
                 }
             }
 
