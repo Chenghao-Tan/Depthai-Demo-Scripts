@@ -164,7 +164,7 @@ with dai.Device() as device:
     fps = FPSHandler()
     sync = HostSync()
     disp_frame = None
-    disp_multiplier = 255 / stereo.initialConfig.getMaxDisparity()
+    disp_multiplier = 255 / stereo.initialConfig.getMaxDisparity()  # type: ignore
 
     frame = None
     depth = None
@@ -183,7 +183,7 @@ with dai.Device() as device:
         if msgs:
             fps.next_iter()
             # get layer1 data
-            layer1 = msgs["nn"].getFirstLayerFp16()
+            layer1 = msgs["nn"].getFirstLayerFp16()  # type: ignore
             # reshape to numpy array
             lay1 = np.asarray(layer1).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0]) > 0.5
             output_colors = decode_deeplabv3p(lay1.astype(np.int32))
@@ -192,10 +192,10 @@ with dai.Device() as device:
             output_colors = crop_to_square(output_colors)
             output_colors = cv2.resize(output_colors, TARGET_SHAPE)
 
-            frame = msgs["color"].getCvFrame()
+            frame = msgs["color"].getCvFrame()  # type: ignore
             frame = crop_to_square(frame)
             frame = cv2.resize(frame, TARGET_SHAPE)
-            frame = cv2.addWeighted(frame, 1, output_colors, 0.5, 0)
+            frame = cv2.addWeighted(frame, 0.5, output_colors, 0.5, 0)
             cv2.putText(
                 frame,
                 "Fps: {:.2f}".format(fps.fps()),
@@ -206,7 +206,7 @@ with dai.Device() as device:
             )
             frames["colored_frame"] = frame
 
-            disp_frame = msgs["depth"].getFrame()
+            disp_frame = msgs["depth"].getFrame()  # type: ignore
             disp_frame = (disp_frame * disp_multiplier).astype(np.uint8)
             disp_frame = crop_to_square(disp_frame)
             disp_frame = cv2.resize(disp_frame, TARGET_SHAPE)

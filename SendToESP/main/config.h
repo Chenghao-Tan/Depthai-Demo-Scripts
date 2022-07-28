@@ -1,2 +1,2 @@
 #define OBSTACLE_SEND_RATE_HZ 15
-#define GRID_NUM 9
+#define GRID_NUM 100

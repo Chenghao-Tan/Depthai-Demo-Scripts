@@ -4,9 +4,12 @@ import cv2
 import depthai as dai
 import numpy as np
 
+GRID_NUM_H = 10  # TODO
+GRID_NUM_W = 10  # TODO
+
 blob = dai.OpenVINO.Blob(
-    "./models/WithDepth(DDRNet)/640_360_U8.blob"
-)  # TODO MODEL PATH
+    "./models/DDRNet(WithDepth)/640_360_(10_10)_debug.blob"
+)  # TODO MODEL PATH (USE DEBUG VERSION)
 for name, tensorInfo in blob.networkInputs.items():
     print(name, tensorInfo.dims)
 INPUT_SHAPE = blob.networkInputs["rgb"].dims[:2]
@@ -55,7 +58,7 @@ right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
 # Create a node that will produce the depth map
 stereo = pipeline.create(dai.node.StereoDepth)
-stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 left.out.link(stereo.left)
 right.out.link(stereo.right)
@@ -84,32 +87,99 @@ with dai.Device() as device:
     fps = FPSHandler()
     while True:
         msgs = q_nn.get()
+        grids = msgs.getLayerFp16("out")
+        filtered = msgs.getLayerFp16("debug")
         img = q_img.get().getCvFrame()
         depth = q_depth.get().getFrame()
         fps.next_iter()
 
-        # get layer1 data
-        layer1 = msgs.getLayerFp16("out")
-        # reshape to numpy array
-        distance_vector = np.asarray(layer1)
-        print(distance_vector)
-        print(distance_vector.shape)
+        grids = np.asarray(grids).reshape(GRID_NUM_H, GRID_NUM_W, 4)  # lxyz
+        filtered = np.asarray(filtered).reshape(INPUT_SHAPE[1], INPUT_SHAPE[0])
 
-        depth = ((depth - depth.min()) / (depth.max() - depth.min()) * 255).astype(
-            np.uint8
-        )
-        depth = cv2.applyColorMap(depth, cv2.COLORMAP_JET)
-        frame = np.concatenate((img, depth), axis=0)
+        filtered = (
+            (filtered - filtered.min()) / (filtered.max() - filtered.min()) * 255
+        ).astype(np.uint8)
+        filtered = cv2.resize(filtered, (1280, 720))  # Force 720P for bigger display
+
+        for i in range(1, GRID_NUM_H):
+            cv2.line(
+                filtered,
+                (0, int(filtered.shape[0] * i / GRID_NUM_H)),
+                (filtered.shape[1] - 1, int(filtered.shape[0] * i / GRID_NUM_H)),
+                color=(255, 255, 255),
+                thickness=1,
+            )
+        for i in range(1, GRID_NUM_W):
+            cv2.line(
+                filtered,
+                (int(filtered.shape[1] * i / GRID_NUM_W), 0),
+                (int(filtered.shape[1] * i / GRID_NUM_W), filtered.shape[0] - 1),
+                color=(255, 255, 255),
+                thickness=1,
+            )
+
+        for i in range(GRID_NUM_H):
+            for j in range(GRID_NUM_W):
+                cv2.putText(
+                    filtered,
+                    "label:{:d}".format(grids[i][j][0].astype(np.uint8)),
+                    (
+                        int(filtered.shape[1] * j / GRID_NUM_W) + 3,
+                        int(filtered.shape[0] * i / GRID_NUM_H) + 12,
+                    ),
+                    cv2.FONT_HERSHEY_TRIPLEX,
+                    0.4,
+                    color=(255, 255, 255),
+                )
+                cv2.putText(
+                    filtered,
+                    "x:{:.1f}m".format(grids[i][j][1].astype(np.uint8)),
+                    (
+                        int(filtered.shape[1] * j / GRID_NUM_W) + 3,
+                        int(filtered.shape[0] * i / GRID_NUM_H) + 24,
+                    ),
+                    cv2.FONT_HERSHEY_TRIPLEX,
+                    0.4,
+                    color=(255, 255, 255),
+                )
+                cv2.putText(
+                    filtered,
+                    "y:{:.1f}m".format(grids[i][j][2].astype(np.uint8)),
+                    (
+                        int(filtered.shape[1] * j / GRID_NUM_W) + 3,
+                        int(filtered.shape[0] * i / GRID_NUM_H) + 36,
+                    ),
+                    cv2.FONT_HERSHEY_TRIPLEX,
+                    0.4,
+                    color=(255, 255, 255),
+                )
+                cv2.putText(
+                    filtered,
+                    "z:{:.1f}m".format(grids[i][j][3].astype(np.uint8)),
+                    (
+                        int(filtered.shape[1] * j / GRID_NUM_W) + 3,
+                        int(filtered.shape[0] * i / GRID_NUM_H) + 48,
+                    ),
+                    cv2.FONT_HERSHEY_TRIPLEX,
+                    0.4,
+                    color=(255, 255, 255),
+                )
 
         cv2.putText(
-            frame,
+            filtered,
             "Fps: {:.2f}".format(fps.fps()),
-            (2, frame.shape[0] - 4),
+            (2, filtered.shape[0] - 4),
             cv2.FONT_HERSHEY_TRIPLEX,
             0.4,
             color=(255, 255, 255),
         )
-        cv2.imshow("Frame", frame)
+        cv2.imshow("FILTERED", filtered)
+        cv2.imshow("RGB", img)
+        depth = ((depth - depth.min()) / (depth.max() - depth.min()) * 255).astype(
+            np.uint8
+        )
+        depth = cv2.applyColorMap(depth, cv2.COLORMAP_JET)
+        cv2.imshow("DEPTH", depth)
 
         if cv2.waitKey(1) == ord("q"):
             break

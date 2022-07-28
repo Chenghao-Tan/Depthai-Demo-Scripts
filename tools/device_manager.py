@@ -2,9 +2,8 @@ import sys
 import tempfile
 from datetime import timedelta
 
-import PySimpleGUI as sg
-
 import depthai as dai
+import PySimpleGUI as sg
 
 CONF_TEXT_POE = [
     "ipTypeText",
@@ -181,7 +180,7 @@ class SearchDevice:
         self.search_devices()
 
     def search_devices(self):
-        self.infos = dai.XLinkConnection.getAllConnectedDevices()
+        self.infos = dai.XLinkConnection.getAllConnectedDevices()  # type: ignore
         if not self.infos:
             sg.Popup("No devices found.")
         else:
@@ -195,7 +194,7 @@ class SearchDevice:
             event, values = self.window.Read()
             if event is None:
                 self.window.close()
-                return None
+                return None  # type: ignore
             elif str(event) == "Search":
                 self.search_devices()
             elif len(event) == 3 and event[0] == "table" and event[1] == "+CLICKED+":
@@ -255,7 +254,7 @@ def getDevices(window):
     try:
         listedDevices = []
         devices.clear()
-        deviceInfos = dai.XLinkConnection.getAllConnectedDevices()
+        deviceInfos = dai.XLinkConnection.getAllConnectedDevices()  # type: ignore
         if not deviceInfos:
             window.Element("devices").update("No devices")
             sg.Popup("No devices found.")
@@ -300,7 +299,7 @@ def getConfigs(window, bl: dai.DeviceBootloader, devType, device: dai.DeviceInfo
         window.Element("devName").update(device.name)
         window.Element("devNameConf").update(device.getMxId())
         window.Element("newBoot").update(
-            dai.DeviceBootloader.getEmbeddedBootloaderVersion()
+            dai.DeviceBootloader.getEmbeddedBootloaderVersion()  # type: ignore
         )
 
         # The "isEmbeddedVersion" tells you whether BL had to be booted,
@@ -310,8 +309,8 @@ def getConfigs(window, bl: dai.DeviceBootloader, devType, device: dai.DeviceInfo
         else:
             window.Element("currBoot").update(bl.getVersion())
 
-        window.Element("version").update(dai.__version__)
-        window.Element("commit").update(dai.__commit__)
+        window.Element("version").update(dai.__version__)  # type: ignore
+        window.Element("commit").update(dai.__commit__)  # type: ignore
         window.Element("devState").update(deviceStateTxt(device.state))
     except Exception as ex:
         PrintException()
@@ -430,7 +429,7 @@ def factoryReset(device: dai.DeviceInfo):
         sg.Popup(f"{ex}")
 
 
-def getDeviceType(bl: dai.DeviceBootloader) -> str:
+def getDeviceType(bl: dai.DeviceBootloader) -> str:  # type: ignore
     try:
         if bl.getType() == dai.DeviceBootloader.Type.NETWORK:
             return "POE"
@@ -462,7 +461,7 @@ def flashFromUsb(device: dai.DeviceInfo):
         sg.Popup(f"{ex}")
 
 
-def connectToDevice(device: dai.DeviceInfo) -> dai.DeviceBootloader:
+def connectToDevice(device: dai.DeviceInfo) -> dai.DeviceBootloader:  # type: ignore
     try:
         bl = dai.DeviceBootloader(device, False)
         return bl

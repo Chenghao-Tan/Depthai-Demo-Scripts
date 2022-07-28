@@ -21,7 +21,7 @@ monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
-stereo.initialConfig.setConfidenceThreshold(255)
+stereo.initialConfig.setConfidenceThreshold(255)  # type: ignore
 stereo.setLeftRightCheck(True)
 stereo.setSubpixel(True)
 
@@ -62,7 +62,7 @@ with dai.Device(pipeline) as device:
 
         # Get disparity frame for nicer depth visualization
         disp = dispQ.get().getFrame()
-        disp = (disp * (255 / stereo.initialConfig.getMaxDisparity())).astype(np.uint8)
+        disp = (disp * (255 / stereo.initialConfig.getMaxDisparity())).astype(np.uint8)  # type: ignore
         disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
 
         text.rectangle(disp, (x - delta, y - delta), (x + delta, y + delta))

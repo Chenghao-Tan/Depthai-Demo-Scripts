@@ -3,7 +3,7 @@ import depthai as dai
 
 def create_pipeline(XLink=False):
     blob = dai.OpenVINO.Blob(
-        "./models/WithDepth(DDRNet)/640_360_U8.blob"
+        "./models/DDRNet(WithDepth)/640_360_(10_10).blob"
     )  # TODO MODEL PATH
     for name, tensorInfo in blob.networkInputs.items():
         print(name, tensorInfo.dims)
@@ -38,7 +38,7 @@ def create_pipeline(XLink=False):
 
     # Create a node that will produce the depth map
     stereo = pipeline.create(dai.node.StereoDepth)
-    stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+    stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
     stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
     left.out.link(stereo.left)
     right.out.link(stereo.right)

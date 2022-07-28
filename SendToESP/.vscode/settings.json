@@ -8,7 +8,7 @@
         "interface/ftdi/esp32_devkitj_v1.cfg",
         "target/esp32.cfg"
     ],
-    "idf.portWin": "COM7",
+    "idf.portWin": "COM4",
     "idf.pythonBinPathWin": "C:\\Users\\Agent_Birkhoff\\.espressif\\python_env\\idf4.4_py3.8_env\\Scripts\\python.exe",
     "idf.toolsPathWin": "C:\\Users\\Agent_Birkhoff\\.espressif",
     "files.associations": {
@@ -78,5 +78,6 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "idf.flashType": "UART"
 }

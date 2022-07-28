@@ -37,17 +37,17 @@ right.setResolution(monoResolution)
 right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 right.setFps(fps)
 stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-stereo.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)
-stereo.initialConfig.setConfidenceThreshold(confidence)
+stereo.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)  # type: ignore
+stereo.initialConfig.setConfidenceThreshold(confidence)  # type: ignore
 stereo.setLeftRightCheck(True)
 stereo.setExtendedDisparity(extended_disparity)
 stereo.setSubpixel(subpixel)
 
 config = stereo.initialConfig.get()
-config.postProcessing.speckleFilter.enable = False
-config.postProcessing.temporalFilter.enable = False
-config.postProcessing.spatialFilter.enable = False
-config.postProcessing.decimationFilter.decimationFactor = 1
+config.postProcessing.speckleFilter.enable = False  # type: ignore
+config.postProcessing.temporalFilter.enable = False  # type: ignore
+config.postProcessing.spatialFilter.enable = False  # type: ignore
+config.postProcessing.decimationFilter.decimationFactor = 1  # type: ignore
 stereo.initialConfig.set(config)
 
 camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
