@@ -78,7 +78,7 @@ with dai.Device() as device:
                 )
                 cv2.putText(
                     blend,
-                    "x:{:.1f}m".format(grids[i][j][1].astype(np.uint8)),
+                    "x:{:.1f}m".format(grids[i][j][1]),
                     (
                         int(blend.shape[1] * j / GRID_NUM_W) + 3,
                         int(blend.shape[0] * i / GRID_NUM_H) + 24,
@@ -89,7 +89,7 @@ with dai.Device() as device:
                 )
                 cv2.putText(
                     blend,
-                    "y:{:.1f}m".format(grids[i][j][2].astype(np.uint8)),
+                    "y:{:.1f}m".format(grids[i][j][2]),
                     (
                         int(blend.shape[1] * j / GRID_NUM_W) + 3,
                         int(blend.shape[0] * i / GRID_NUM_H) + 36,
@@ -100,7 +100,7 @@ with dai.Device() as device:
                 )
                 cv2.putText(
                     blend,
-                    "z:{:.1f}m".format(grids[i][j][3].astype(np.uint8)),
+                    "z:{:.1f}m".format(grids[i][j][3]),
                     (
                         int(blend.shape[1] * j / GRID_NUM_W) + 3,
                         int(blend.shape[0] * i / GRID_NUM_H) + 48,
