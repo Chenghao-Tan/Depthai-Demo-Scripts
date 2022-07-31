@@ -36,7 +36,7 @@ left.setFps(fps)
 right.setResolution(monoResolution)
 right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 right.setFps(fps)
-stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 stereo.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)  # type: ignore
 stereo.initialConfig.setConfidenceThreshold(confidence)  # type: ignore
 stereo.setLeftRightCheck(True)

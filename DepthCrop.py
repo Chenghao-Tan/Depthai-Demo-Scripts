@@ -133,7 +133,7 @@ right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
 # Create a node that will produce the depth map (using disparity output as it's easier to visualize depth this way)
 stereo = pipeline.create(dai.node.StereoDepth)
-stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 left.out.link(stereo.left)
 right.out.link(stereo.right)
