@@ -39,7 +39,7 @@ git submodule update --recursive --init
 3. **tools**:
     - **device_manager**: Depthai's official tool for uploading bootloader, erasing flash, configuring, etc. (high DPI display bug fixed)
     - **get_info**: Get your camera's info, such as intrinsic matrices. You need to set RESOLUTION_H and RESOLUTION_W first to get corresponding intrinsic matrices.
-    - **onnx_simplifier**: Used for simplifying onnx model. Run in CLI. The first arg is the path of the input onnx, and the second is the output.
+    - **onnx_simplifier**: Used for simplifying onnx model. Run in CLI. The first arg is the path of the input onnx, and the second is the output. You'll need an extra package called **onnx-simplifier** to run this script.
     - json and txt: Cam info of my OAK-D-IOT-75. For reference.
 
 4. **SpatialLocationCalculator**: See [Depthai's official demo of SpatialLocationCalculator](https://github.com/luxonis/depthai-experiments/tree/master/gen2-calc-spatials-on-host). The calculation is running on the host side. Use W/A/S/D to move, R to zoom out the ROI box, and F to zoom in.
