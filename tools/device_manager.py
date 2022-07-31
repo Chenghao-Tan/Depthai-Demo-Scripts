@@ -628,7 +628,7 @@ deviceConfigLayout = [
             disabled=True,
             key="configFake",
         ),
-        # TODO create library tab
+        # create library tab
         # sg.Button("Library", size=(15, 1), font=('Arial', 10, 'bold'), disabled=True, key="configLib"),
         sg.Text("", key="devNameConf", size=(30, 1)),
     ],
