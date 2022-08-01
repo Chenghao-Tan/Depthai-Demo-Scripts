@@ -27,9 +27,9 @@ git submodule update --recursive --init
         - output->confidence map of the obstacle pixels
     - WithDepth model's IO:
         - input->Image ("rgb"), Depth map ("depth")
-        - output->flattened grids info ("out")
-        - debug output->flattened grids info ("out"), filtered depth map ("debug")
-    - Flattened grids info: (label, x, y, z for each grid, transmitted in 1D)
+        - output->Flattened grids info ("out")
+        - debug output->Flattened grids info ("out"), Filtered depth map ("debug")
+    - Flattened grids info: (label, x, y, z for each grid, in 1D)
         - label: 0 for background, 1 for obstacles (binary classification for now)
         - x,y,z: in meters
     - Naming rules:
