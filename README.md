@@ -21,7 +21,7 @@ git submodule update --recursive --init
 
 1. **dataset**: MaSTr1325 dataset
 
-2. **models**: Models trained with modified [DDRNet](https://github.com/Agent-Birkhoff/DDRNet) and UNet(deprecated, but still supported by the training framework). They are end-to-end, with built-in preprocessing.
+2. **models**: Models trained with modified [DDRNet (OAK-D-IoT branch)](https://github.com/Agent-Birkhoff/DDRNet/tree/OAK-D-IoT) and UNet(deprecated, but still supported by the training framework). They are end-to-end, with built-in preprocessing.
     - Standard model's IO:
         - input->Image
         - output->confidence map of the obstacle pixels
