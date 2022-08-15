@@ -69,14 +69,6 @@ git submodule update --recursive --init
     - **calculate_only**: Calculate the IoU only, without any graphical display.
     - **threshold**: Confidence threshold of the segmentation result.
 
-10. **SendToESP**: Complete obstacle avoidance program, including the code for the onboard ESP32 and scripts for VPU. *This might be migrated to another repository soon.*
-    - **vpu_setup**: Run in CLI. Used for uploading the program to VPU's flash. See the script detail for more usage.
-    - **vpu_test**: Used for visualization like what CamDemo(WithDepth) does. **WILL NOT** upload the program to VPU's flash.
-    - **main**: ESP32's main code. You need to build and flash it using ESP-IDF.
-    - components and others: Libraries used in the project.
-    - Configurations:
-        - pipeline.py: **model path** and **IspScale**, the same as CamDemo(WithDepth).
-        - vpu_test.py: **GRID_NUM_H**, **GRID_NUM_W** is the same as CamDemo(WithDepth). However, the model's **INPUT_SHAPE** needs to be specified manually. You can ignore these settings if you don't want to visualize.
-        - main/config.h: **OBSTACLE_SEND_RATE_HZ** is the frequency of sending obstacle locations. **GRID_NUM**=GRID_NUM_H*GRID_NUM_H, is the total number of grids.
+10. **SendToESP**: **Move To [Boat-Obstacle-Avoidance](https://github.com/Agent-Birkhoff/Boat-Obstacle-Avoidance)**
 
 In most cases, you can press **q** to quit the demo.
