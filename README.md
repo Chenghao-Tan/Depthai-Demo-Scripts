@@ -7,11 +7,9 @@
     - Install python environment (It is recommended to use conda to install python3.9)
     - Clone [Depthai's official repository](https://github.com/luxonis/depthai) and follow the instruction there.
 
-2. If you want to use the onboard ESP32, install ESP-IDF following the instruction [here](https://docs.espressif.com/projects/esp-idf/en/v4.2.2/esp32/get-started/index.html).
-
-3. Clone this repository and its submodules:
+2. Clone this repository and its submodules:
 ``` bash
-git clone https://github.com/Agent-Birkhoff/Depthai-Demo-Scripts.git
+git clone https://github.com/Chenghao-Tan/Depthai-Demo-Scripts.git
 git submodule update --recursive --init
 ```
 
@@ -21,11 +19,11 @@ git submodule update --recursive --init
 
 1. **dataset**: MaSTr1325 dataset
 
-2. **models**: Models trained with modified [DDRNet (OAK-D-IoT branch)](https://github.com/Agent-Birkhoff/DDRNet/tree/OAK-D-IoT) and UNet(deprecated, but still supported by the training framework). They are end-to-end, with built-in preprocessing.
-    - Standard model's IO:
+2. **models**: Models trained with modified [DDRNet](https://github.com/Chenghao-Tan/DDRNet/) and UNet(deprecated, but still supported by the training framework). They are end-to-end, with built-in preprocessing.
+    - Standard model's IO (A.K.A. Built-in Obstacle Detection=False/HOST_SIDE=True):
         - input->Image
         - output->confidence map of the obstacle pixels
-    - WithDepth model's IO:
+    - WithDepth model's IO (A.K.A. Built-in Obstacle Detection=True/HOST_SIDE=False):
         - input->Image ("rgb"), Depth map ("depth")
         - output->Flattened grids info ("out")
         - debug output->Flattened grids info ("out"), Filtered depth map ("debug")
@@ -68,7 +66,5 @@ git submodule update --recursive --init
     - **range**: The range of **x** in (x).jpg/png
     - **calculate_only**: Calculate the IoU only, without any graphical display.
     - **threshold**: Confidence threshold of the segmentation result.
-
-10. **SendToESP**: **Move To [Boat-Obstacle-Avoidance](https://github.com/Agent-Birkhoff/Boat-Obstacle-Avoidance)**
 
 In most cases, you can press **q** to quit the demo.
