@@ -27,9 +27,9 @@ git submodule update --recursive --init
         - input->Image ("rgb"), Depth map ("depth")
         - output->Flattened grids info ("out")
         - debug output->Flattened grids info ("out"), Filtered depth map ("debug")
-    - Flattened grids info: (label, x, y, z for each grid, in 1D)
+    - Flattened grids info: (label, z for each grid, in 1D)
         - label: 0 for background, 1 for obstacles (binary classification for now)
-        - x,y,z: in meters
+        - z: in meters
     - Naming rules:
         - resolution (*W_H*)
         - resolution + grid number on each axis (*W_H_(GW_GH)*)
